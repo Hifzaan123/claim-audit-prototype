@@ -172,14 +172,12 @@ async function decideClaim(claim, clauses) {
   const retrievalMethod = top[0]?.method || "unknown";
 
   const triggers = [];
-  // Initial anomalies from raw claim (more added after line-item decisions too)
   let anomalies = [];
 
   const serviceDate = parseDateLoose(claim.serviceDate);
   const policyStart = parseDateLoose(claim.policyStartDate);
   const monthsSinceStart = serviceDate && policyStart ? diffInMonthsApprox(serviceDate, policyStart) : null;
 
-  // Extract key policy parameters from top clauses
   let roomRentLimit = null;
   let waitingMonths = null;
   const exclusionClauses = [];
@@ -195,7 +193,6 @@ async function decideClaim(claim, clauses) {
     if (isExcludedClause(txt)) exclusionClauses.push(r.clause);
   }
 
-  // Decide line items with citations
   const lineItems = [];
   let totalRequested = 0;
   let totalPayable = 0;
@@ -210,11 +207,9 @@ async function decideClaim(claim, clauses) {
     let reason = "Covered under policy (no blocking trigger detected).";
     let citationClause = best;
 
-    // Exclusions: if any exclusion clause matches the diagnosis/item category strongly, reject that line
     const textBlob = safeLower([claim.diagnosis || "", item.description || ""].join(" "));
     const matchedExclusion = exclusionClauses.find((c) => {
       const ct = safeLower(c.text || "");
-      // Basic: if clause mentions a key token present in claim
       return (ct.includes("cosmetic") && textBlob.includes("cosmetic")) ||
         (ct.includes("dental") && textBlob.includes("dental")) ||
         (ct.includes("not covered") && (textBlob.includes("cosmetic") || textBlob.includes("dental")));
@@ -227,7 +222,6 @@ async function decideClaim(claim, clauses) {
       triggers.push("EXCLUSION_CLAUSE");
     }
 
-    // Waiting period: apply to the actual procedure/treatment line item (not to room rent/medicine add-ons)
     const itemLooksLikeProcedure = category === "PROCEDURE" || safeLower(item.description).includes("surgery") || safeLower(item.description).includes("procedure");
     if (status !== "REJECTED" && waitingMonths != null && itemLooksLikeProcedure) {
       if (monthsSinceStart != null && monthsSinceStart < waitingMonths) {
@@ -240,7 +234,6 @@ async function decideClaim(claim, clauses) {
       }
     }
 
-    // Room rent sublimit
     if (status !== "REJECTED" && category === "ROOM_RENT" && roomRentLimit != null) {
       if (requested > roomRentLimit) {
         status = "PARTIAL";
@@ -264,7 +257,6 @@ async function decideClaim(claim, clauses) {
     });
   }
 
-  // Overall status
   const anyRejected = lineItems.some((i) => i.status === "REJECTED");
   const anyPartial = lineItems.some((i) => i.status === "PARTIAL");
 
@@ -272,28 +264,23 @@ async function decideClaim(claim, clauses) {
   if (anyRejected && totalPayable === 0) status = "REJECT";
   else if (anyRejected || anyPartial) status = "PARTIAL";
 
-  // Investigational / novel therapies → manual review (insurer-style; stable vs embedding noise)
   const diagLower = safeLower(claim.diagnosis || "");
   if (diagLower.includes("experimental") || diagLower.includes("gene therapy") || diagLower.includes("gene-therapy")) {
     triggers.push("INVESTIGATIONAL_TREATMENT_REVIEW");
     status = "REVIEW";
   }
 
-  // Low-confidence / review mode
   const confidence = Math.max(0.5, Math.min(0.95, 0.62 + bestScore));
   if (!best || bestScore < 0.12) {
     triggers.push("LOW_RETRIEVAL_CONFIDENCE");
     status = "REVIEW";
   }
 
-  // Fraud/anomaly flags (rule-based)
   anomalies = fraudAndAnomalyFlags({ claim, decision: { status, totals: { requested: totalRequested, payable: totalPayable }, lineItems } });
   const fraudRisk = fraudRiskFromSignals({ claim, decision: { status, totals: { requested: totalRequested, payable: totalPayable }, lineItems } });
 
-  // De-dupe triggers
   let triggerSet = Array.from(new Set(triggers));
 
-  // Real-world insurer compliance gate (manual-review routing)
   const complianceGate = applyComplianceGate({
     claim,
     currentStatus: status,
@@ -327,7 +314,6 @@ async function decideClaim(claim, clauses) {
         .split(/\s+/)
         .filter((w) => w.length >= 4)
         .concat(
-          // simple synonym support for demo
           (safeLower(claim.diagnosis).includes("plastic") ? ["cosmetic"] : []),
           (safeLower(claim.diagnosis).includes("cosmetic") ? ["plastic"] : [])
         )

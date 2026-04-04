@@ -60,7 +60,6 @@ function showDecision(payload) {
       }`
     : "—";
 
-  // Line items table
   const items = Array.isArray(d.lineItems) ? d.lineItems : [];
   const rows = items.map((it) => {
     const st = String(it.status || "").toUpperCase();
@@ -168,8 +167,6 @@ $("analyzeText").addEventListener("click", async () => {
 $("filesForm").addEventListener("submit", async (ev) => {
   ev.preventDefault();
   try {
-    // Important: create FormData BEFORE disabling inputs.
-    // Disabled form fields are omitted by the browser, including file inputs.
     const form = new FormData(ev.currentTarget);
     setBusy(true);
     const payload = await apiJson("/api/analyze-files", { method: "POST", body: form });
@@ -244,8 +241,6 @@ async function refreshAnalytics() {
   try {
     a = await apiJson("/api/analytics");
   } catch {
-    // Backward compatibility: older backend builds may not expose /api/analytics.
-    // Derive a lightweight snapshot from test results so dashboard still works.
     const tests = await apiJson("/api/run-tests");
     const results = Array.isArray(tests.results) ? tests.results : [];
     const total = results.length;

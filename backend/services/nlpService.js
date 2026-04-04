@@ -35,9 +35,7 @@ async function getEmbedding(text) {
   await initPipelines();
   if (!_pipelines?.embedder) return null;
 
-  // Returns [1, tokens, dim]. We'll mean-pool over tokens.
   const out = await _pipelines.embedder(text, { pooling: "mean", normalize: true });
-  // transformers.js returns a Tensor-like object with `data` sometimes, or plain arrays depending on backend.
   if (Array.isArray(out)) return out;
   if (out?.data) return Array.from(out.data);
   if (out?.tolist) return out.tolist();
@@ -49,7 +47,6 @@ async function extractEntities(text) {
   if (!_pipelines?.ner) return { entities: [], available: false, error: _initError ? String(_initError) : null };
 
   const ents = await _pipelines.ner(text);
-  // Normalize to simple shape
   const entities = (ents || []).map((e) => ({
     type: e.entity_group || e.entity || "UNKNOWN",
     text: e.word,
@@ -60,7 +57,6 @@ async function extractEntities(text) {
 }
 
 async function semanticTopK(queryText, clauses, k = 5) {
-  // Returns [{ clause, score, method }]
   const qEmb = await getEmbedding(queryText);
   if (qEmb) {
     const scored = [];
@@ -74,7 +70,6 @@ async function semanticTopK(queryText, clauses, k = 5) {
     return scored.slice(0, k);
   }
 
-  // Fallback: simple token overlap score
   const qTokens = new Set(
     safeLower(queryText)
       .replace(/[^a-z0-9\s]/g, " ")

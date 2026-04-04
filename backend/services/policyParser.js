@@ -14,7 +14,6 @@ function splitIntoParagraphs(text) {
   const hasBlankLine = /\n\s*\n/.test(normalized);
   const hasMultipleLines = (normalized.match(/\n/g) || []).length >= 2;
 
-  // If the policy is line-separated (common when extracted), treat each line as a paragraph.
   if (!hasBlankLine && hasMultipleLines) {
     return normalized
       .split(/\r?\n/)
@@ -22,7 +21,6 @@ function splitIntoParagraphs(text) {
       .filter(Boolean);
   }
 
-  // Otherwise, prefer true paragraphs; fallback to non-empty lines.
   const paras = normalized
     .split(/\n\s*\n/g)
     .map(p => p.replace(/\s*\n\s*/g, " ").trim())

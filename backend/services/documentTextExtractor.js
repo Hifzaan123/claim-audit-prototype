@@ -11,7 +11,6 @@ function normalizeText(text) {
 }
 
 async function extractTextFromPdfBuffer(buffer) {
-  // pdfjs-dist ships ESM; use dynamic import from CommonJS.
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
   const loadingTask = pdfjs.getDocument({ data: new Uint8Array(buffer) });
@@ -46,12 +45,10 @@ async function extractTextFromUploadedFile(file) {
     return await extractTextFromPdfBuffer(file.buffer);
   }
 
-  // Images (png/jpg/webp) go through OCR
   if (mime.startsWith("image/") || [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"].includes(ext)) {
     return await extractTextFromImageBuffer(file.buffer);
   }
 
-  // Fallback: treat as utf-8 text
   const asText = normalizeText(file.buffer.toString("utf8"));
   return { fullText: asText, pages: [{ pageNumber: 1, text: asText }] };
 }

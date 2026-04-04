@@ -15,7 +15,6 @@ function computeTotals(items) {
 }
 
 function fraudRiskFromSignals({ claim, decision }) {
-  // Score: 0 (safe) -> 100 (very suspicious)
   let score = 0;
   const reasons = [];
 
@@ -23,14 +22,12 @@ function fraudRiskFromSignals({ claim, decision }) {
   const items = claim?.items || [];
   const provider = claim?.provider || {};
 
-  // Missing document authenticity fields (common in fabricated bills)
   if (!provider.hospitalName) { score += 18; reasons.push("Missing hospital/clinic name"); }
   if (!provider.invoiceNumber) { score += 18; reasons.push("Missing invoice/bill number"); }
   if (!provider.gstin) { score += 10; reasons.push("Missing GSTIN (many Indian invoices include it)"); }
   if (!provider.registrationNumber) { score += 10; reasons.push("Missing provider registration number"); }
   if (!provider.doctorName) { score += 6; reasons.push("Missing doctor name"); }
 
-  // Low detail / generic descriptions
   if (raw.length < 250) { score += 12; reasons.push("Document text is very short / low detail"); }
   if (items.length <= 1) { score += 10; reasons.push("Too few itemized charges"); }
 
@@ -38,24 +35,20 @@ function fraudRiskFromSignals({ claim, decision }) {
   const genericHits = genericTerms.filter((t) => raw.toLowerCase().includes(t)).length;
   if (genericHits >= 5) { score += 10; reasons.push("Many generic terms; low specificity"); }
 
-  // Round-number patterns
   const roundLarge = items.filter((i) => (Number(i.amount) || 0) >= 10000 && isRoundNumber(Number(i.amount) || 0)).length;
   if (roundLarge >= 2) { score += 10; reasons.push("Multiple large round-number charges"); }
 
-  // Amount mismatch signals
   const totals = decision?.totals;
   if (totals && typeof totals.requested === "number" && totals.requested <= 0) {
     score += 10;
     reasons.push("No requested total detected");
   }
 
-  // If claim is FULLY rejected but looks like a polished bill, that can be fraud attempt
   if (String(decision?.status || "").toUpperCase() === "REJECT" && raw.length > 800) {
     score += 6;
     reasons.push("Rejected claim with long/structured text (possible intent mismatch)");
   }
 
-  // Cap to [0,100]
   score = Math.max(0, Math.min(100, score));
   const level = score >= 65 ? "HIGH" : score >= 35 ? "MEDIUM" : "LOW";
   return { score, level, reasons };
@@ -69,22 +62,18 @@ function claimRiskScore({ claim, decision }) {
   const triggers = decision?.triggers || [];
   const status = String(decision?.status || "").toUpperCase();
 
-  // Amount risk
   if (total >= 250000) { score += 35; reasons.push("Very high claim amount"); }
   else if (total >= 120000) { score += 22; reasons.push("High claim amount"); }
   else if (total >= 60000) { score += 12; reasons.push("Moderate-high claim amount"); }
 
-  // Disease / treatment risk
   if (diagnosis.includes("surgery") || diagnosis.includes("procedure")) { score += 12; reasons.push("Surgical claim complexity"); }
   if (diagnosis.includes("cosmetic") || diagnosis.includes("plastic")) { score += 22; reasons.push("Potential exclusion category"); }
   if (diagnosis.includes("experimental") || diagnosis.includes("gene")) { score += 25; reasons.push("Experimental treatment risk"); }
 
-  // Policy mismatch / compliance risk
   if (triggers.includes("WAITING_PERIOD")) { score += 30; reasons.push("Waiting period mismatch"); }
   if (triggers.includes("EXCLUSION_CLAUSE")) { score += 28; reasons.push("Policy exclusion match"); }
   if (triggers.includes("LOW_RETRIEVAL_CONFIDENCE")) { score += 12; reasons.push("Low clause retrieval confidence"); }
 
-  // Final decision itself is a risk hint
   if (status === "REJECT") score += 15;
   if (status === "PARTIAL") score += 8;
   if (status === "REVIEW") score += 18;
@@ -99,12 +88,10 @@ function fraudAndAnomalyFlags({ claim, decision }) {
   const items = claim?.items || [];
   const totals = computeTotals(items);
 
-  // Missing/weak documentation
   if (!claim?.patientName) flags.push({ severity: "MED", code: "MISSING_PATIENT_NAME", detail: "Patient name not found in claim text." });
   if (!claim?.serviceDate) flags.push({ severity: "MED", code: "MISSING_SERVICE_DATE", detail: "Service/admission date not found in claim text." });
   if (!claim?.diagnosis) flags.push({ severity: "MED", code: "MISSING_DIAGNOSIS", detail: "Diagnosis not found in claim text." });
 
-  // Date inconsistencies
   const sd = parseDateLoose(claim?.serviceDate);
   const ps = parseDateLoose(claim?.policyStartDate);
   if (sd && ps) {
@@ -125,11 +112,9 @@ function fraudAndAnomalyFlags({ claim, decision }) {
     }
   }
 
-  // High totals
   if (totals.total > 250000) flags.push({ severity: "HIGH", code: "HIGH_TOTAL_AMOUNT", detail: `Total claim amount is high: ₹${totals.total}` });
   else if (totals.total > 100000) flags.push({ severity: "MED", code: "ELEVATED_TOTAL_AMOUNT", detail: `Total claim amount is elevated: ₹${totals.total}` });
 
-  // Duplicate line items
   const seen = new Map();
   for (const i of items) {
     const k = safeLower(i.description || "").replace(/\s+/g, " ").trim();
@@ -140,7 +125,6 @@ function fraudAndAnomalyFlags({ claim, decision }) {
     if (n >= 2) flags.push({ severity: "MED", code: "DUPLICATE_LINE_ITEMS", detail: `Duplicate line item appears ${n} times: "${k}"` });
   }
 
-  // Room-rent inflation vs policy cap (uses decision line items)
   const roomLines = (decision?.lineItems || []).filter((l) => l.category === "ROOM_RENT");
   for (const l of roomLines) {
     if (l.status === "PARTIAL" && (l.requested || 0) >= 2 * (l.payable || 0)) {
@@ -152,7 +136,6 @@ function fraudAndAnomalyFlags({ claim, decision }) {
     }
   }
 
-  // Suspiciously round large numbers (common in fabricated bills)
   const largeRound = items.filter((i) => (Number(i.amount) || 0) >= 20000 && isRoundNumber(Number(i.amount) || 0));
   if (largeRound.length >= 2) {
     flags.push({
@@ -162,11 +145,9 @@ function fraudAndAnomalyFlags({ claim, decision }) {
     });
   }
 
-  // Very high single line item
   const maxLine = items.reduce((best, i) => Math.max(best, Number(i.amount) || 0), 0);
   if (maxLine >= 200000) flags.push({ severity: "HIGH", code: "VERY_HIGH_SINGLE_CHARGE", detail: `A single line item is very high: ₹${maxLine}` });
 
-  // Fabricated document / fake claim intent (doctor friend) heuristic
   const risk = fraudRiskFromSignals({ claim, decision });
   if (risk.level !== "LOW") {
     flags.push({

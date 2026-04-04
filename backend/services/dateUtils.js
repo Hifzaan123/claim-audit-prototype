@@ -2,11 +2,9 @@ function parseDateLoose(s) {
   const str = String(s || "").trim();
   if (!str) return null;
 
-  // Try ISO first
   const iso = new Date(str);
   if (!Number.isNaN(iso.getTime())) return iso;
 
-  // Try dd/mm/yyyy or dd-mm-yyyy
   const m = str.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
   if (m) {
     const dd = Number(m[1]);

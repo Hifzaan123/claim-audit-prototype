@@ -52,7 +52,6 @@ async function extractClaimFields(claimText) {
   m = text.match(/(?:Diagnosis|Diagnosed With)\s*[:\-]\s*([A-Za-z0-9 ,/()\-]+)/i);
   if (m) claim.diagnosis = m[1].trim();
 
-  // Provider / document identifiers (helpful for fraud detection)
   m = text.match(/(?:Hospital|Clinic|Provider)\s*[:\-]\s*([A-Za-z0-9 .,&()\-]{3,})/i);
   if (m) claim.provider.hospitalName = m[1].trim();
 
@@ -79,31 +78,26 @@ async function extractClaimFields(claimText) {
     }
   }
 
-  // NER enrichment (best-effort). If model isn't available, it will safely no-op.
   const ner = await extractEntities(text);
   if (ner.available && Array.isArray(ner.entities)) {
     claim.extractedBy.ner = true;
 
-    // PERSON
     if (!claim.patientName) {
       const person = ner.entities.find((e) => e.type === "PER" && e.text && e.text.length >= 3);
       if (person) claim.patientName = person.text.replace(/^##/, "").trim();
     }
 
-    // DATE: pick best guess for serviceDate/policyStartDate if missing
     const dates = ner.entities
       .filter((e) => e.type === "DATE" && e.text)
       .map((e) => ({ raw: e.text, date: parseDateLoose(e.text) }))
       .filter((d) => d.date);
 
-    // Heuristic: earliest date looks like policy start; latest looks like service.
     if (dates.length >= 1) {
       dates.sort((a, b) => a.date.getTime() - b.date.getTime());
       if (!claim.policyStartDate) claim.policyStartDate = dates[0].raw;
       if (!claim.serviceDate) claim.serviceDate = dates[dates.length - 1].raw;
     }
 
-    // MONEY: if items empty, try to infer "X - amount" patterns using MONEY entities
     if (claim.items.length === 0) {
       const money = ner.entities.filter((e) => e.type === "MONEY" && e.text);
       for (const e of money.slice(0, 8)) {
@@ -114,7 +108,6 @@ async function extractClaimFields(claimText) {
       }
     }
 
-    // ORG can often represent hospital/clinic name
     if (!claim.provider.hospitalName) {
       const org = ner.entities.find((e) => e.type === "ORG" && e.text && e.text.length >= 3);
       if (org) claim.provider.hospitalName = org.text.replace(/^##/, "").trim();

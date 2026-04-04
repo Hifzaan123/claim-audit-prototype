@@ -7,11 +7,6 @@ function normalizeText(text) {
     .trim();
 }
 
-/**
- * OCR an image buffer using Tesseract.
- * Kept as a separate service so the architecture is clean and swappable
- * (e.g., Google Vision / AWS Textract later).
- */
 async function ocrImageBuffer(buffer, { lang = "eng" } = {}) {
   const { createWorker } = require("tesseract.js");
   const worker = await createWorker(lang);
@@ -28,4 +23,3 @@ async function ocrImageBuffer(buffer, { lang = "eng" } = {}) {
 }
 
 module.exports = { ocrImageBuffer };
-

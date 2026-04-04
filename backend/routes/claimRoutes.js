@@ -21,7 +21,6 @@ function recordAnalytics(decision) {
   if (String(decision?.fraudRisk?.level || "").toUpperCase() === "HIGH") analyticsState.fraudHigh += 1;
 }
 
-// POST /api/analyze (raw text)
 router.post("/analyze", async (req, res) => {
   const { policyText, claimText } = req.body;
 
@@ -37,7 +36,6 @@ router.post("/analyze", async (req, res) => {
   return res.json({ claim, clauses, decision });
 });
 
-// GET /api/sample
 router.get("/sample", (req, res) => {
   try {
     const policyText = fs.readFileSync(path.join(__dirname, "..", "data", "sample-policy.txt"), "utf8");
@@ -48,7 +46,6 @@ router.get("/sample", (req, res) => {
   }
 });
 
-// GET /api/run-tests
 router.get("/run-tests", async (req, res) => {
   try {
     const { summary, results } = await runSyntheticTests();
@@ -58,7 +55,6 @@ router.get("/run-tests", async (req, res) => {
   }
 });
 
-// GET /api/evaluation — judge-facing report aligned with hackathon rubric + synthetic metrics
 router.get("/evaluation", async (req, res) => {
   try {
     const { summary, results } = await runSyntheticTests();
@@ -68,7 +64,6 @@ router.get("/evaluation", async (req, res) => {
   }
 });
 
-// GET /api/analytics
 router.get("/analytics", (req, res) => {
   const total = analyticsState.total || 0;
   const pct = (n) => (total ? Number(((n / total) * 100).toFixed(1)) : 0);
@@ -83,8 +78,6 @@ router.get("/analytics", (req, res) => {
   });
 });
 
-// POST /api/analyze-files (multipart/form-data)
-// Fields: policyFile, claimFile
 router.post(
   "/analyze-files",
   upload.fields([
