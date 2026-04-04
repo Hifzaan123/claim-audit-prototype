@@ -1,0 +1,20 @@
+{
+  "name": "claim-audit-prototype",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm --prefix backend run start",
+    "generate:demo-pdfs": "npm --prefix backend run generate:demo-pdfs",
+    "collect:data": "npm --prefix backend run collect:data",
+    "install:backend": "npm --prefix backend install",
+    "test": "echo \"No root tests\" && exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}

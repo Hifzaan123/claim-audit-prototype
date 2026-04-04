@@ -1,0 +1,6 @@
+Patient: Rahul Kumar
+Service Date: 10/02/2026
+Policy Start Date: 01/01/2026
+Diagnosis: Knee surgery
+Knee surgery - 50000
+Room rent - 8000

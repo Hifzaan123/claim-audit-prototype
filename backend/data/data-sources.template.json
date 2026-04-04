@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "notes": "Fill this template as you add legal/public datasets. Keep license and consent info for each source.",
+  "sources": [
+    {
+      "id": "kaggle_synthetic_claims",
+      "name": "Enhanced Health Insurance Claims (Synthetic)",
+      "category": "claims_tabular",
+      "url": "https://www.kaggle.com/",
+      "license": "Check source",
+      "status": "planned",
+      "ingestion": "manual_download",
+      "targetRawFolder": "data/raw/claims"
+    },
+    {
+      "id": "mimic_iv_note",
+      "name": "MIMIC-IV-Note",
+      "category": "clinical_notes",
+      "url": "https://www.physionet.org/content/mimic-iv-note/2.2/",
+      "license": "Credentialed access",
+      "status": "planned",
+      "ingestion": "approved_access",
+      "targetRawFolder": "data/raw/discharge-summaries"
+    },
+    {
+      "id": "medical_invoice_ocr",
+      "name": "Medical Invoice OCR dataset",
+      "category": "invoice_ocr",
+      "url": "https://www.alibabacloud.com/",
+      "license": "Check source",
+      "status": "planned",
+      "ingestion": "manual_download",
+      "targetRawFolder": "data/raw/claims"
+    },
+    {
+      "id": "public_policy_wordings",
+      "name": "Public insurer policy wording PDFs",
+      "category": "policy_documents",
+      "url": "https://www.irdai.gov.in/",
+      "license": "Public web documents",
+      "status": "planned",
+      "ingestion": "manual_curation",
+      "targetRawFolder": "data/raw/policies"
+    }
+  ]
+}

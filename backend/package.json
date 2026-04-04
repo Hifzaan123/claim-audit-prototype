@@ -1,0 +1,22 @@
+{
+  "name": "claim-audit-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "generate:demo-pdfs": "node scripts/generate-demo-pdfs.js",
+    "collect:data": "node scripts/collect-dataset.js"
+  },
+  "dependencies": {
+    "claim-audit-prototype": "file:..",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "@xenova/transformers": "^2.17.2",
+    "pdfjs-dist": "^5.4.149",
+    "pdfkit": "^0.17.2",
+    "tesseract.js": "^6.0.1"
+  }
+}

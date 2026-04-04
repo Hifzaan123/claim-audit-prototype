@@ -1,0 +1,51 @@
+[
+  {
+    "id": "T1_waiting_period_knee_surgery",
+    "policyText": "1. Knee surgery is covered after a waiting period of 12 months.\n2. Hospitalization is covered.",
+    "claimText": "Patient: A\nHospital: City General Hospital\nInvoice No: INV-T1-1001\nReg No: REG-T1-9001\nService Date: 10/02/2026\nPolicy Start Date: 01/01/2026\nDiagnosis: Knee surgery\nKnee surgery - 50000",
+    "expectedStatus": "REJECT",
+    "expected": {
+      "fields": { "diagnosis": "Knee surgery" },
+      "citationMustContain": "waiting period"
+    }
+  },
+  {
+    "id": "T2_exclusion_cosmetic",
+    "policyText": "1. Cosmetic surgery is not covered.\n2. Diagnostic tests are covered.",
+    "claimText": "Patient: B\nHospital: City General Hospital\nInvoice No: INV-T2-2002\nReg No: REG-T2-9002\nService Date: 10/02/2026\nPolicy Start Date: 01/01/2026\nDiagnosis: Cosmetic surgery\nCosmetic surgery - 120000",
+    "expectedStatus": "REJECT",
+    "expected": {
+      "fields": { "diagnosis": "Cosmetic surgery" },
+      "citationMustContain": "not covered"
+    }
+  },
+  {
+    "id": "T3_room_rent_partial",
+    "policyText": "1. Room rent is covered up to Rs 3000 per day.\n2. Hospitalization is covered.",
+    "claimText": "Patient: C\nHospital: City General Hospital\nInvoice No: INV-T3-3003\nReg No: REG-T3-9003\nService Date: 10/02/2026\nPolicy Start Date: 01/01/2026\nDiagnosis: Hospitalization\nRoom rent - 8000",
+    "expectedStatus": "PARTIAL",
+    "expected": {
+      "citationMustContain": "room rent",
+      "minPayable": 3000
+    }
+  },
+  {
+    "id": "T4_simple_approve",
+    "policyText": "1. Hospitalization is covered.\n2. Diagnostic tests are covered.",
+    "claimText": "Patient: D\nHospital: City General Hospital\nInvoice No: INV-T4-4004\nReg No: REG-T4-9004\nService Date: 10/02/2026\nPolicy Start Date: 01/01/2026\nDiagnosis: Hospitalization\nDiagnostic tests - 2000",
+    "expectedStatus": "APPROVE",
+    "expected": {
+      "fields": { "diagnosis": "Hospitalization" },
+      "minPayable": 2000
+    }
+  },
+  {
+    "id": "T5_review_unknown",
+    "policyText": "1. Hospitalization is covered.\n2. Diagnostic tests are covered.",
+    "claimText": "Patient: E\nHospital: City General Hospital\nInvoice No: INV-T5-5005\nReg No: REG-T5-9005\nService Date: 10/02/2026\nPolicy Start Date: 01/01/2026\nDiagnosis: Experimental gene therapy\nGene therapy - 999999",
+    "expectedStatus": "REVIEW",
+    "expected": {
+      "fields": { "diagnosis": "Experimental gene therapy" }
+    }
+  }
+]
