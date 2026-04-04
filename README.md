@@ -95,6 +95,3 @@ If you don’t have real claims to use, the template for logging external datase
 
 Pick something sensible for this and check licenses on bundled model weights (Xenova pulls from Hugging Face–style repos).
 
-### Write-up PDF
-
-Prepare the summary in Word/Google Docs and export as the PDF name and deadline given in the organizer email (e.g. `YourName_The Big Code_2026.pdf`, Drive sharing, form link).
