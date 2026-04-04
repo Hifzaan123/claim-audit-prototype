@@ -26,7 +26,7 @@ http://localhost:5000
 
 ---
 
-### Showing it to someone in ~2 min
+### Showing it to someone 
 
 Load sample → Analyze text. Walk through the status, one citation, requested vs payable, then hit Run tests so they see the synthetic suite pass rate. If you have time, do a real PDF upload.
 
