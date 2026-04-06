@@ -1,12 +1,12 @@
 # Insurance Claim Settlement Agent
 
 
-The idea is straightforward: you throw in a hospital bill (and optionally a discharge note) plus a policy PDF. The app pulls text out (PDF or OCR for scans), finds the relevant policy clauses, runs a bunch of rules, and spits out approve / reject / partial / needs review. When something gets knocked back, it tries to point to **where in the policy** that came from (page + paragraph + a short snippet).
+The idea is : you throw in a hospital bill (and optionally a discharge note) plus a policy PDF. The app pulls text out (PDF or OCR for scans), finds the relevant policy clauses, runs a bunch of rules, and spits out approve / reject / partial / needs review. When something gets knocked back, it tries to point to **where in the policy** that came from (page + paragraph + a short snippet).
 
-Stack is Node, Express, pdfjs + Tesseract, Xenova transformers for embeddings/NER, plus hand-written rules. Nothing fancy trained on real claims — it’s a prototype.
+Tech Stack is Node, Express, pdfjs + Tesseract, Xenova transformers for embeddings/NER, plus hand-written rules.
 
 
-For the form we usually pasted something like:
+For the form i usually pasted the links:
 
 ```
 Primary README: https://github.com/USER/REPO/blob/main/README.md
